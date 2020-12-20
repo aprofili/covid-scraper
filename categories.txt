@@ -1,0 +1,221 @@
+Menswear
+    Tops 2 (43-52) [205] {12}
+        Cardigans 45
+        Casual Shirts 51
+        Dress shirts 50
+        Hoodies 47
+        Polo shirts 49
+        Sweaters 44
+        Sweatshirts 46
+        Tank tops
+        T-shirts
+        Other 52
+        Jerseys 205
+    Bottoms 3 (25-42) [209] {123}
+        Casual pants
+        Dress pants
+        Jeans
+        Overalls/Dungarees
+        Shorts
+        Sweatpants
+        Tracksuits
+        Other 42
+        Overalls/Dungarees 209
+    Underwear 4 (83-86) {12}
+        Boxers
+        Briefs
+        Swimwear
+        Other 86
+    Outerwear 5 (69-82) [201,204] {12}
+        Blazers
+        Bomber jackets
+        Capes & Ponchos
+        Denim jackets
+        Leather jackets
+        Parkas
+        Pea Coats
+        Puffer jackets
+        Suits
+        Track jackets
+        Trench coats
+        Vests
+        Windbreakers
+        Other 82
+        Fleeces 201
+        Snow suits 204
+    Accessories 7 (59-68)
+        Bags
+        Belts
+        Caps
+        Gloves
+        Hats
+        Scarves
+        Socks
+        Sunglasses
+        Watches
+        Other 68
+    Shoes 6 (53-58) [216,217,218] {42}
+        Ankle boots
+        Casual shoes
+        Dress shoes
+        Flip Flops & Slides
+        Sneakers
+        Other 58
+        Boots 216
+        Brogues 217
+        Chelsea Boots 218
+
+Womenswear
+    Tops 9 (86-99) [206,207,208] {125}
+        Bandeau tops
+        Blouses
+        Bodysuits
+        Bralets
+        Cami tops
+        Cardigans
+        Crop tops
+        Hoodies
+        Sweaters
+        Sweatshirts
+        Tank tops
+        T-shirts
+        Other 99
+        Jerseys 206
+        Bustiers/Corsets 207
+        Shirts 208
+    Bottoms 10 (100-117) [210,214,215,219,220,221,229] {1892}
+        Bootcut jeans 102
+        Boyfriend jeans
+        Casual pants
+        Culottes
+        Dress pants
+        Flare jeans
+        High waisted jeans
+        Jeggings
+        Leggings
+        Overalls/Dungarees
+        Playsuits
+        Ripped jeans
+        Shorts
+        Skinny jeans
+        Skirts
+        Wide leg jeans 111
+        Other 117
+        Overalls/Dungarees 210
+        Mini skirts 214
+        Maxi skirts 215
+        Mom Jeans 219
+        Pencil Skirts 220
+        Pleated Skirts 221
+        Sweatpants/Joggers 229
+    Dresses 11 (118-130) [222,223] {152}
+        Babydoll dresses
+        Bodycon dresses
+        Casual dresses
+        Evening dresses
+        Going out dresses
+        Jumpsuits
+        Maxi dresses
+        Midi dresses
+        Prom dresses
+        Rompers
+        Suits
+        Summer dresses
+        Other 130
+        Shirt Dresses 222
+        Wrap Dresses 223
+    Lingerie 12 (156-163) {102}
+        Bras
+        Camisoles
+        Nightgowns
+        Pajamas
+        Robes
+        Swimwear
+        Underwear
+        Other 163
+    Outerwear 13 (131-145) [202,203] {172}
+        Blazers
+        Bomber jackets
+        Capes & Ponchos
+        Denim jackets
+        Faux fur coats
+        Kimonos
+        Leather jackets
+        Parkas
+        Pea Coats
+        Puffer jackets
+        Track jackets
+        Trench coats
+        Vests
+        Windbreakers
+        Other 145
+        Fleeces 202
+        Snow suits 203
+    Accessories 16 (146-155) [212,213]
+        Bags & Purses
+        Belts
+        Hair Accessories
+        Hats
+        Scarves
+        Socks & Tights
+        Sunglasses
+        Wallets
+        Watches
+        Other 155
+        Gloves 212
+        Caps 213
+    Shoes 14 (164-174) [224,225,226,227] {62}
+        Boots
+        Flats
+        Heels
+        Knee high boots
+        Loafers
+        Platforms
+        Sandals
+        Slides
+        Sneakers
+        Wedges
+        Other 174
+        Ankle Boots 224
+        Brogues 225
+        Chelsea Boots 226
+        Over The Knee Boots 227
+    Sets 211
+    Suits 227 {152}
+
+    Jewellery 17 (183-190)
+        Body jewelry
+        Bracelets
+        Earrings
+        Necklaces
+        Pins
+        Rings
+        Watches
+        Other 190
+    Art 18 (175-182)
+        Collectibles
+        Drawings & Illustrations
+        Mixed Media
+        Paintings
+        Photography
+        Prints
+        Sculptures
+        Other 182
+    Home 21
+    Kids 22
+    Beauty 23 (191-197)
+        Bath & Body 195
+        Fragrance
+        Hair
+        Makeup 191
+        Skincare
+        Tools & Brushes
+        Other 197
+    Sports equipment 24
+    Transportation 228
+    Other 26 [228]
+        Cameras 228
+    Books & Magazines 27
+    Film 28
+    Music 29
+    Face masks and coverings 200
