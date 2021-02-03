@@ -11,7 +11,7 @@ Menswear
         T-shirts
         Other 52
         Jerseys 205
-    Bottoms 3 (25-42) [209] {123}
+    Bottoms 3 (35-42) [209] {123}
         Casual pants
         Dress pants
         Jeans
@@ -212,7 +212,7 @@ Womenswear
         Tools & Brushes
         Other 197
     Sports equipment 24
-    Transportation 228
+        #####Transportation 228
     Other 26 [228]
         Cameras 228
     Books & Magazines 27
