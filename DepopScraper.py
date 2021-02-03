@@ -12,17 +12,16 @@ from functools import partial
 import urllib.request
 import pymysql
 import re
-<<<<<<< Updated upstream
-=======
 import sys
 import os
 import subprocess
 import traceback
->>>>>>> Stashed changes
 
+# holds the information of a single listing, including pictures, price, etc.
 class Entry:
-    
+    # takes in an href if creating, or a tablerow if recovering
     def __init__(self, href = "", tablerow = ""):
+        # setting default data
         self.href = href
         self.size = "N/A"
         self.price = 0
@@ -32,9 +31,11 @@ class Entry:
         self.category = "Category not found"
         self.dateUpdated = "Date not found"
 
+        # if creating, do these
         if tablerow == "":
             markAsSeen = 1
 
+            # gets html code if possible
             try:
                 response = requests.get('https://www.depop.com' + href, timeout=15)
                 if response.ok:
@@ -46,6 +47,7 @@ class Entry:
             except Exception as e:
                 print(e)
 
+            # finds json representation of the listing if available
             success = 0
             for i in soup.find_all('script'):
                 if i.has_attr('id') and i['id'] == "__NEXT_DATA__":
@@ -58,6 +60,7 @@ class Entry:
                 print("Couldn't find json script for href " + href)
                 return
 
+            # from takes json into useable form
             if 'props' in jsondict and 'initialReduxState' in jsondict['props'] and 'product' in jsondict['props']['initialReduxState'] and 'product' in jsondict['props']['initialReduxState']['product']:
                 jsondict = jsondict['props']['initialReduxState']['product']['product']
             else:
@@ -66,6 +69,7 @@ class Entry:
                 pprint(jsondict)
                 return
 
+            # from json dictionary, retrieves important info
             if 'sizes' in jsondict and 'name' in jsondict['sizes'][0]:
                 self.size = jsondict['sizes'][0]['name']
 
@@ -96,22 +100,9 @@ class Entry:
                 self.description = (jsondict['description'] + "                                                  ")[:50]
 
             if 'categoryId' in jsondict:
-                if jsondict['categoryId'] in Entry.categoryDict.keys():
-                    self.category = Entry.categoryDict[jsondict['categoryId']]
-                else:
-                    self.category = "Not in Dict: " + str(jsondict['categoryId'])
-                    print(self.category)
-                    print(self.href)
-                    print("\n\n\n\n")
-                    markAsSeen = 0
+                self.category = int(jsondict['categoryId'])
             elif 'categories' in jsondict:
-                if jsondict['categories'][0] in Entry.categoryDict.keys():
-                    self.category = Entry.categoryDict[jsondict['categories'][0]]
-                else:
-                    self.category = "Not in Dict: " + str(jsondict['categories'][0])
-                    print(self.category)
-                    print(self.href)
-                    print("\n\n\n\n")
+                    self.category = int(jsondict['categories'][0])
             if self.category == "Category not found":
                 markAsSeen = 0
 
@@ -120,9 +111,11 @@ class Entry:
             elif 'date_updated' in jsondict:
                 self.dateUpdated = jsondict['date_updated']
 
+            # if no important errors, mark the listing as seen in SQL database
             if markAsSeen:
                 cursor.execute("INSERT INTO seen VALUES (%s);", (self.href))
 
+        # recovers listing from SQL stored data
         elif tablerow != "":
             self.href = tablerow[0]
             self.size = tablerow[1]
@@ -136,12 +129,11 @@ class Entry:
             for row in cursor.fetchall():
                 self.pictures.append(row[0])
 
-    # def __eq__(self, other):
-    #         return isinstance(other, Entry) and self.description == other.description and self.dateUpdated == other.dateUpdated
-
+    # to print the entry for debugging
     def __repr__(self):
         return ('Category: {0}\n Description: {1}\n Size: {2}\n href: {3}\n Price: {4}'.format(self.category, self.description, self.size, self.href, self.price))
 
+# home page with main functions/page links
 class Home(QWidget):
     def __init__(self):
         super().__init__()
@@ -172,27 +164,27 @@ class Home(QWidget):
         self.grid.addWidget(self.clearButton, 1, 1)
         self.setMinimumSize(600, 200)
 
-<<<<<<< Updated upstream
-=======
     # uses stored search terms and criteria to find unseen listings
->>>>>>> Stashed changes
     def search(self):
         self.searchButton.setText("Parsing search terms...")
         app.processEvents()
 
+        # retrieves search terms
         searchTerms = []
         with open("search_terms.txt", "r") as terms:
             for line in terms:
                 if line and (line.strip() not in searchTerms):
                     searchTerms.append(line.strip())
 
+        # opens web driver
         options = webdriver.ChromeOptions()
         options.add_argument('headless')
-
         driver = webdriver.Chrome("/home/adam/Documents/Projects/Files/chromedriver", options=options)
         hrefs = set()
         numSearchTerms = len(searchTerms)
         currentNum = 0
+
+        # searches each search term
         for term in searchTerms:
             currentNum += 1
             self.searchButton.setText('Searching for "{0}"... ({1}/{2})'.format(term, currentNum, numSearchTerms))
@@ -200,6 +192,8 @@ class Home(QWidget):
             try:
                 driver.get('https://www.depop.com/search/?q=' + term)
                 time.sleep(3)
+
+                # scrolls all the way to the bottom of the page, loading every listing
                 scroll = 0
                 count = 0
                 while count < 100:
@@ -212,10 +206,12 @@ class Home(QWidget):
                     scroll = newScroll
                     time.sleep(0.01)
 
+                # exports html
                 soup = BeautifulSoup(driver.page_source, "html.parser")
             except Exception as e:
                 print(e)
 
+            # finds each href (url chunk) from the loaded listings
             for a in soup.find_all('a'):
                 if a.has_attr('class'):
                     if 'bVpHsn' in a['class']:
@@ -223,6 +219,7 @@ class Home(QWidget):
 
         driver.close()
 
+        # passes each href into an Entry object then adds it to a list
         newEntries = []
         numHrefs = len(hrefs)
         for (i, href) in enumerate(hrefs):
@@ -239,7 +236,11 @@ class Home(QWidget):
                 # if (firstTime - secondTime) < 0.02:
                 #     time.sleep(0.02 - (firstTime - secondTime))
 
+        # loads filter json made on the filter screens
+        with open('sizes_categories.txt', 'r') as file:
+            filter_dict = json.loads(file.read())
 
+        # iterates through the listings for filter criteria matches
         todaysFinds = []
         numNewEntries = len(newEntries)
         for (i, entry) in enumerate(newEntries):
@@ -250,41 +251,29 @@ class Home(QWidget):
                         app.processEvents()
 
             success = 0
-            if 'T-Shirt' in entry.category:
-                if entry.size == "XL" or (entry.price + entry.shipping <= 10 and (entry.size == "XXL" or entry.size == "L")):
-                    todaysFinds.append(entry)
-                    success = 1
-            elif 'Outerwear' in entry.category:
-                if entry.size == "XL" or entry.size == "L":
-                    todaysFinds.append(entry)
-                    success = 1
-            elif "Accessory" in entry.category:
-                if "flag" in entry.description.lower() or "hat" in entry.description.lower() or "cap" in entry.description.lower() or "snapback" in entry.description.lower():
-                    todaysFinds.append(entry)
-                    success = 1
-            elif 'Music' in entry.category:
-                if "vinyl" in entry.description.lower():
-                    todaysFinds.append(entry)
-                    success = 1
-            elif 'Tank' in entry.category:
-                if entry.size == "L":
-                    todaysFinds.append(entry)
-                    success = 1
-            if entry.price > 65 or entry.price <= 1:
-                success = 0
+            if str(entry.category) in filter_dict:
+                if entry.size in filter_dict[str(entry.category)]:
+                    success2 = 0
+                    for term in filter_dict[str(entry.category)][entry.size][2]:
+                        if term in entry.description:
+                            success2 = 1
+                    if success2 or len(filter_dict[str(entry.category)][entry.size][2]) == 0:
+                        if not filter_dict[str(entry.category)][entry.size][0] or (entry.price + entry.shipping) >= int(filter_dict[str(entry.category)][entry.size][0]):
+                            if not filter_dict[str(entry.category)][entry.size][1] or (entry.price + entry.shipping) <= int(filter_dict[str(entry.category)][entry.size][1]):
+                                todaysFinds.append(entry)
+                                success = 1
+
+            # if matches criteria, listing temporarily goes to an SQL database for viewing
             if success:
                 cursor.execute("INSERT INTO todaysfinds VALUES (%s, %s, %s, %s, %s, %s, %s);", (entry.href, entry.size, entry.price, entry.shipping, entry.description, entry.category, entry.dateUpdated))
                 cursor.executemany("INSERT INTO todaysfindspictures VALUES (%s, %s);", [(entry.href, i) for i in entry.pictures])
-            # else:
-            #     print(entry)
-            #     print("\n\n\n\n")
-
 
         connection.commit()
 
         self.searchButton.setText("Today's new finds: {0}. Search again?".format(len(todaysFinds)))
         app.processEvents()
 
+    # views matched listings that haven't been cleared yet
     def viewer(self):
         pageSize = 200
         cursor.execute("SELECT COUNT(*) FROM todaysfinds;")
@@ -295,6 +284,7 @@ class Home(QWidget):
         self.hide()
         self.deleteLater()
 
+    # clears listings that have already been looked through
     def clear(self):
         cursor.execute("DELETE FROM todaysfindspictures;")
         cursor.execute("DELETE FROM todaysfinds;")
@@ -303,16 +293,14 @@ class Home(QWidget):
         self.message.setText("Listings successfully marked as seen.")
         self.message.show()
 
+    # changes the filter settings
     def filter(self):
         self.nextWindow = FilterCategories()
         self.nextWindow.show()
         self.hide()
         self.deleteLater()
 
-<<<<<<< Updated upstream
-=======
 # page to set which categories to filter for
->>>>>>> Stashed changes
 class FilterCategories(QWidget):
     def __init__(self):
         super().__init__()
@@ -324,6 +312,7 @@ class FilterCategories(QWidget):
         self.category_list_widget = QListWidget()
         self.category_list_widget.setSelectionMode(QAbstractItemView.MultiSelection)
 
+        # retrieves the category ids that are currently in the filter
         clicked_categories = []
         try:
             with open('sizes_categories.txt', 'r') as file:
@@ -332,19 +321,26 @@ class FilterCategories(QWidget):
         except:
             error = 1
 
+        # parses the current category list file, creating widget list items for each
         categories = []
+        # note: code for sub_categories is half-there, but not quite finished
         sub_categories = []
         with open('categories.txt') as file:
             for line in file:
+                # for subcategories
                 if "        " in line:
                     # sub_categories.append(re.search(r"(.*) \d", line.strip()).group(1))
                     continue
+
+                # for categories
                 elif "    " in line:
+                    # creates a list item to choose from
                     temp_list_item = QListWidgetItem()
                     temp_list_item.setText(outer_category + " > " + re.search(r"(.*) \d", line.strip()).group(1))
                     temp_category_ids = []
                     temp_size_ids = ""
 
+                    # retrieves the category ids that fall under that list item to hold within the listing
                     temp_category_ids.append(int(re.search(r"(\d+)", line.strip()).group(1)))
                     if re.search(r".* \(.*\)", line.strip()) is not None:
                         temp_category_ids += range(int(re.search(r"\((\d+)-(\d+)\)", line.strip()).group(1)),
@@ -355,16 +351,17 @@ class FilterCategories(QWidget):
                     if re.search(r".* \{.*\}", line.strip()) is not None:
                         temp_size_ids = re.search(r"\{(.*)\}", line.strip()).group(1)
 
-                    clicked = 0
-                    for category_id in temp_category_ids:
-                        if category_id in clicked_categories:
-                            clicked = 1
-
+                    # attaches the category ids and size list identifiers to the listing, then adds it to the widget
                     temp_list_item.setData(1, temp_category_ids)
                     temp_list_item.setData(3, temp_size_ids)
                     self.category_list_widget.addItem(temp_list_item)
-                    if clicked:
-                        temp_list_item.setSelected(True)
+
+                    # if any of the ids within the category were previously filtered, they are automatically clicked
+                    for category_id in temp_category_ids:
+                        if category_id in clicked_categories:
+                            temp_list_item.setSelected(True)
+
+                # for supercategories (menswear/womenswear)
                 else:
                     # categories.append(line.strip() + "--")
                     outer_category = line.strip()
@@ -377,12 +374,13 @@ class FilterCategories(QWidget):
         self.vbox.addWidget(self.nextButton)
         self.setLayout(self.vbox)
 
-
+    # goes to the next page to filter sizes for each of the chosen categories
     def next(self):
         self.nextWindow = FilterSizes(self.category_list_widget.selectedItems())
         self.nextWindow.show()
         self.hide()
 
+# page to set what sizes to filter for, split by each category
 class FilterSizes(QWidget):
     def __init__(self, selected_items):
         super().__init__()
@@ -391,6 +389,7 @@ class FilterSizes(QWidget):
 
         self.setWindowTitle("Select Filter Categories")
 
+        # lists to encompass all of depop's horrible mess of a sizing system, to be later applied only on items that can have that size
         sizes1 = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', 'XXXXL']
         sizes2 = ['Other', 'One size']
         sizes3 = [str(i) + '"' for i in list(range(26, 43)) + [44, 46]]
@@ -403,6 +402,7 @@ class FilterSizes(QWidget):
         sizes0 = [str(i) for i in range(13)] + ['28D'] + [str(i) + str(j) for i in range(32, 36, 2) for j in ['A', 'B', 'C', 'D', 'DD', 'E']] + [str(i) + str(j) for i in range(36, 40, 2) for j in ['A', 'B', 'C', 'D', 'DD', 'E', 'F', 'G']] + [i + ' cup' for i in ['A', 'B', 'C', 'D', 'DD']]
         size_dict = {1: sizes1, 2: sizes2, 3: sizes3, 4: sizes4, 5: sizes5, 6: sizes6, 7: sizes7, 8: sizes8, 9: sizes9, 0: sizes0}
 
+        # if a previous filter has been used, loads it in
         try:
             with open('sizes_categories.txt', 'r') as file:
                 self.filter_dict = json.loads(file.read())
@@ -413,15 +413,21 @@ class FilterSizes(QWidget):
 
         self.hbox_list = []
 
+        # iterates through the categories selected on the last screen
         for i in selected_items:
+            # steps if there are size options for this category
             if i.data(3):
+                # creates a row with applicable information
                 temp_sizes = []
                 row_hbox = QHBoxLayout()
                 row_hbox.addWidget(FilterSizesEntry(i))
                 row_list_widget = QListWidget()
                 row_list_widget.setSelectionMode(QAbstractItemView.MultiSelection)
+
+                # converts the size identifiers to a list of sizes for the category
                 for j in i.data(3):
                     temp_sizes += size_dict[int(j)]
+                # creates a list widget for each possible size, clicks the ones from the previous filter
                 for j in temp_sizes:
                     temp_list_widget_item = QListWidgetItem(j)
                     row_list_widget.addItem(temp_list_widget_item)
@@ -440,17 +446,27 @@ class FilterSizes(QWidget):
         self.vbox.addWidget(self.nextButton)
         self.setLayout(self.vbox)
 
+    # moves on to the next screen to set price ranges and keywords
     def next(self):
         self.nextWindow = FilterPriceKeyword(self.selected_items, self.hbox_list)
         self.nextWindow.show()
         self.hide()
 
+# a QLabel with additional data fields to hold a category's ids and size identifiers
 class FilterSizesEntry(QLabel):
-    def __init__(self, list_widget_item):
-        super().__init__(list_widget_item.text())
-        self.category_ids = list_widget_item.data(1)
-        self.sizes = list_widget_item.data(3)
+    def __init__(self, input):
+        # if instantiated from a QList Widget
+        if isinstance(input, QListWidgetItem):
+            super().__init__(input.text())
+            self.category_ids = input.data(1)
+            self.sizes = input.data(3)
+        # if cloning another existing FilterSizesEntry
+        elif isinstance(input, FilterSizesEntry):
+            super().__init__(input.text())
+            self.category_ids = input.category_ids
+            self.sizes = input.sizes
 
+# page to set price ranges and required keywords for each chosen size of each chosen category
 class FilterPriceKeyword(QWidget):
     def __init__(self, selected_items, hbox_list):
         super().__init__()
@@ -462,12 +478,28 @@ class FilterPriceKeyword(QWidget):
 
         self.vbox = QVBoxLayout()
 
+        # creates the grid and header
         self.grid = QGridLayout()
+        self.grid.addWidget(QLabel("Category"), 0, 0)
+        self.grid.addWidget(QLabel("Size"), 0, 1)
+        self.grid.addWidget(QLabel("Minimum Price"), 0, 2)
+        self.grid.addWidget(QLabel("Maximum Price"), 0, 3)
+        self.grid.addWidget(QLabel("Search Terms"), 0, 4)
 
-        row_index = 0
+        # yet again loads the last saved filter
+        try:
+            with open('sizes_categories.txt', 'r') as file:
+                filter_dict = json.loads(file.read())
+        except:
+            filter_dict = {}
+
+        # for each category and size, creates a row in the grid with relevant line edits
+        row_index = 1
+        # iterates through each row of the size screen
         for hbox in self.hbox_list:
+            # iterates through each selected size for that given row
             for size in hbox.itemAt(1).widget().selectedItems():
-                self.grid.addWidget(hbox.itemAt(0).widget(), row_index, 0)
+                self.grid.addWidget(FilterSizesEntry(hbox.itemAt(0).widget()), row_index, 0)
                 self.grid.addWidget(QLabel(size.text()), row_index, 1)
                 temp_start_price = QLineEdit()
                 temp_end_price = QLineEdit()
@@ -475,28 +507,62 @@ class FilterPriceKeyword(QWidget):
                 self.grid.addWidget(temp_start_price, row_index, 2)
                 self.grid.addWidget(temp_end_price, row_index, 3)
                 self.grid.addWidget(temp_keyword, row_index, 4)
+
+                # fills line edits with values from last saved filter
+                for category_id in self.grid.itemAtPosition(row_index, 0).widget().category_ids:
+                    if str(category_id) in filter_dict:
+                        if size.text() in filter_dict[str(category_id)]:
+                            temp_start_price.setText(filter_dict[str(category_id)][size.text()][0])
+                            temp_end_price.setText(filter_dict[str(category_id)][size.text()][1])
+                            temp_keyword.setText(filter_dict[str(category_id)][size.text()][2])
+                row_index += 1
+        # for items without size options that weren't previously included, creates similar rows
+        for item in selected_items:
+            if not item.data(3):
+                self.grid.addWidget(FilterSizesEntry(item), row_index, 0)
+                self.grid.addWidget(QLabel('N/A'), row_index, 1)
+                temp_start_price = QLineEdit()
+                temp_end_price = QLineEdit()
+                temp_keyword = QLineEdit()
+                self.grid.addWidget(temp_start_price, row_index, 2)
+                self.grid.addWidget(temp_end_price, row_index, 3)
+                self.grid.addWidget(temp_keyword, row_index, 4)
+                for category_id in item.data(1):
+                    if str(category_id) in filter_dict:
+                        if 'N/A' in filter_dict[str(category_id)]:
+                            temp_start_price.setText(filter_dict[str(category_id)]['N/A'][0])
+                            temp_end_price.setText(filter_dict[str(category_id)]['N/A'][1])
+                            temp_keyword.setText(filter_dict[str(category_id)]['N/A'][2])
                 row_index += 1
 
         self.nextButton = QPushButton("Next")
         self.nextButton.clicked.connect(self.next)
 
+        self.grid_widget = QWidget()
+        self.grid_widget.setLayout(self.grid)
         self.scroll_area = QScrollArea()
-        self.scroll_area.setLayout(self.grid)
+        self.scroll_area.setWidget(self.grid_widget)
+        self.scroll_area.setWidgetResizable(False)
+        self.scroll_area.setMinimumWidth(self.grid_widget.width() + 16)
         self.vbox.addWidget(self.scroll_area)
         self.vbox.addWidget(self.nextButton)
         self.setLayout(self.vbox)
 
+    # creates and saves a json representation of the filter, then moves to the next screen for search terms
     def next(self):
+        # creates dictionary in format {category: {size: (min_price, max_price, search_terms) } }
         filter_dict = {}
-        for hbox in self.hbox_list:
-            for category_id in hbox.itemAt(0).widget().category_ids:
-                filter_dict[category_id] = {}
-                for size in hbox.itemAt(1).widget().selectedItems():
-                    filter_dict[category_id][size.text()] = (0, -1, [])
-        for item in self.selected_items:
-            if not item.data(3):
-                for category_id in item.data(1):
-                    filter_dict[category_id] = {'N/A': (0, -1, [])}
+        for row_index in range(1, self.grid.rowCount()):
+            temp_category_ids = self.grid.itemAtPosition(row_index, 0).widget().category_ids
+            temp_size = self.grid.itemAtPosition(row_index, 1).widget().text()
+            temp_min_price = self.grid.itemAtPosition(row_index, 2).widget().text()
+            temp_max_price = self.grid.itemAtPosition(row_index, 3).widget().text()
+            temp_keywords = self.grid.itemAtPosition(row_index, 4).widget().text()
+            for category_id in temp_category_ids:
+                if category_id not in filter_dict:
+                    filter_dict[int(category_id)] = {}
+                filter_dict[int(category_id)][temp_size] = (temp_min_price, temp_max_price, temp_keywords)
+        # writes it to a file in json
         with open('sizes_categories.txt', 'w') as file:
             print(json.dumps(filter_dict), file=file)
         self.nextWindow = FilterSearchTerms()
@@ -504,6 +570,7 @@ class FilterPriceKeyword(QWidget):
         self.hide()
         self.deleteLater()
 
+# page to set the search terms to look through
 class FilterSearchTerms(QWidget):
     def __init__(self):
         super().__init__()
@@ -513,6 +580,7 @@ class FilterSearchTerms(QWidget):
         self.vbox = QVBoxLayout()
         self.text_edit = QPlainTextEdit()
 
+        # opens search terms from most recent filter, puts them into the box if found
         try:
             with open('search_terms.txt', 'r') as file:
                 self.text_edit.setPlainText(file.read())
@@ -526,6 +594,7 @@ class FilterSearchTerms(QWidget):
         self.vbox.addWidget(self.text_edit)
         self.setLayout(self.vbox)
 
+    # saves the search terms and returns home
     def next(self):
         with open('search_terms.txt', 'w') as file:
             print(self.text_edit.toPlainText(), end='', file=file)
@@ -534,6 +603,7 @@ class FilterSearchTerms(QWidget):
         self.hide()
         self.deleteLater()
 
+# page to view unseen listings that matched search criteria
 class TodaysFinds(QWidget):
     def __init__(self, pageIndex, pageCount, pageSize, viewerButton):
         super().__init__()
@@ -623,39 +693,30 @@ class TodaysFinds(QWidget):
         self.hide()
         self.deleteLater()
 
-<<<<<<< Updated upstream
-
-
-=======
 # custom widget to show a listing with its price, description, link, and pictures you can scroll through
->>>>>>> Stashed changes
 class GridEntry(QWidget):
     def __init__(self, entry):
         super().__init__()
-        # print("setting grid entry variables")
         vbox = QVBoxLayout()
         self.picLabel = QLabel('picture')
         self.picLabel.setMinimumSize(200, 200)
         self.picIndex = 0
         self.entry = entry
-        # print("about to try loading picture")
+        # loads first picture
         try:
-            # print("trying to load picture")
             picData = urllib.request.urlopen(entry.pictures[0], timeout=15).read()
             self.picLabel.setMaximumSize(200, 200)
             self.picLabel.setScaledContents(True)
             picPixmap = QPixmap()
             picPixmap.loadFromData(picData)
             self.picLabel.setPixmap(picPixmap)
-            # print("successfully loaded picture")
         except Exception as e:
             print(e)
 
         button = QPushButton("Next Picture")
         button.clicked.connect(self.nextpic)
 
-        # print("finishing grid entry")
-
+        # creates hyperlinked url
         descLabel = QLabel('<a href="{0}">{1}</a>'.format('https://www.depop.com' + entry.href, entry.description + "..."))
         descLabel.setTextFormat(Qt.RichText)
         descLabel.setTextInteractionFlags(Qt.TextBrowserInteraction)
@@ -690,7 +751,6 @@ class GridEntry(QWidget):
                 self.picLabel.setPixmap(picPixmap)
             except Exception as e:
                 print(e)
-
 
 if __name__ == "__main__":
 
