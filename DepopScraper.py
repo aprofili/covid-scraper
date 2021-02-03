@@ -12,6 +12,13 @@ from functools import partial
 import urllib.request
 import pymysql
 import re
+<<<<<<< Updated upstream
+=======
+import sys
+import os
+import subprocess
+import traceback
+>>>>>>> Stashed changes
 
 class Entry:
     
@@ -165,6 +172,10 @@ class Home(QWidget):
         self.grid.addWidget(self.clearButton, 1, 1)
         self.setMinimumSize(600, 200)
 
+<<<<<<< Updated upstream
+=======
+    # uses stored search terms and criteria to find unseen listings
+>>>>>>> Stashed changes
     def search(self):
         self.searchButton.setText("Parsing search terms...")
         app.processEvents()
@@ -298,6 +309,10 @@ class Home(QWidget):
         self.hide()
         self.deleteLater()
 
+<<<<<<< Updated upstream
+=======
+# page to set which categories to filter for
+>>>>>>> Stashed changes
 class FilterCategories(QWidget):
     def __init__(self):
         super().__init__()
@@ -608,8 +623,12 @@ class TodaysFinds(QWidget):
         self.hide()
         self.deleteLater()
 
+<<<<<<< Updated upstream
 
 
+=======
+# custom widget to show a listing with its price, description, link, and pictures you can scroll through
+>>>>>>> Stashed changes
 class GridEntry(QWidget):
     def __init__(self, entry):
         super().__init__()
@@ -653,6 +672,7 @@ class GridEntry(QWidget):
         vbox.addWidget(QLabel('${2}'.format(round(entry.price, 2), round(entry.shipping, 2), round(entry.price + entry.shipping, 2))))
         if entry.size != "N/A":
             vbox.addWidget(QLabel(entry.size))
+        vbox.addWidget(QLabel('CategoryId: {0}'.format(entry.category)))
         self.setLayout(vbox)
         self.setMinimumSize(200, 350)
         self.setMaximumSize(200, 350)
