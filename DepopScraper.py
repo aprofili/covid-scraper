@@ -169,6 +169,7 @@ class Home(QWidget):
         self.searchButton.setText("Parsing search terms...")
         app.processEvents()
 
+        pprint("hi")
         # retrieves search terms
         searchTerms = []
         with open("search_terms.txt", "r") as terms:
@@ -179,11 +180,12 @@ class Home(QWidget):
         # opens web driver
         options = webdriver.ChromeOptions()
         options.add_argument('headless')
-        driver = webdriver.Chrome("/home/adam/Documents/Projects/Files/chromedriver", options=options)
+        pprint("waddup")
+        driver = webdriver.Chrome("C:\\Users\\Adam\\Documents\\Projects\\Files\\chromedriver.exe", options=options)
         hrefs = set()
         numSearchTerms = len(searchTerms)
         currentNum = 0
-
+        pprint("hello")
         # searches each search term
         for term in searchTerms:
             currentNum += 1
@@ -512,9 +514,9 @@ class FilterPriceKeyword(QWidget):
                 for category_id in self.grid.itemAtPosition(row_index, 0).widget().category_ids:
                     if str(category_id) in filter_dict:
                         if size.text() in filter_dict[str(category_id)]:
-                            temp_start_price.setText(filter_dict[str(category_id)][size.text()][0])
-                            temp_end_price.setText(filter_dict[str(category_id)][size.text()][1])
-                            temp_keyword.setText(filter_dict[str(category_id)][size.text()][2])
+                            temp_start_price.setText(str(filter_dict[str(category_id)][size.text()][0]))
+                            temp_end_price.setText(str(filter_dict[str(category_id)][size.text()][1]))
+                            temp_keyword.setText(str(filter_dict[str(category_id)][size.text()][2]))
                 row_index += 1
         # for items without size options that weren't previously included, creates similar rows
         for item in selected_items:
@@ -530,9 +532,9 @@ class FilterPriceKeyword(QWidget):
                 for category_id in item.data(1):
                     if str(category_id) in filter_dict:
                         if 'N/A' in filter_dict[str(category_id)]:
-                            temp_start_price.setText(filter_dict[str(category_id)]['N/A'][0])
-                            temp_end_price.setText(filter_dict[str(category_id)]['N/A'][1])
-                            temp_keyword.setText(filter_dict[str(category_id)]['N/A'][2])
+                            temp_start_price.setText(str(filter_dict[str(category_id)]['N/A'][0]))
+                            temp_end_price.setText(str(filter_dict[str(category_id)]['N/A'][1]))
+                            temp_keyword.setText(str(filter_dict[str(category_id)]['N/A'][2]))
                 row_index += 1
 
         self.nextButton = QPushButton("Next")
