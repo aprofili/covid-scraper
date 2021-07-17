@@ -169,7 +169,6 @@ class Home(QWidget):
         self.searchButton.setText("Parsing search terms...")
         app.processEvents()
 
-        pprint("hi")
         # retrieves search terms
         searchTerms = []
         with open("search_terms.txt", "r") as terms:
@@ -180,12 +179,10 @@ class Home(QWidget):
         # opens web driver
         options = webdriver.ChromeOptions()
         options.add_argument('headless')
-        pprint("waddup")
         driver = webdriver.Chrome("C:\\Users\\Adam\\Documents\\Projects\\Files\\chromedriver.exe", options=options)
         hrefs = set()
         numSearchTerms = len(searchTerms)
         currentNum = 0
-        pprint("hello")
         # searches each search term
         for term in searchTerms:
             currentNum += 1
@@ -210,16 +207,18 @@ class Home(QWidget):
 
                 # exports html
                 soup = BeautifulSoup(driver.page_source, "html.parser")
+                # pprint(soup)
             except Exception as e:
                 print(e)
 
             # finds each href (url chunk) from the loaded listings
             for a in soup.find_all('a'):
                 if a.has_attr('class'):
-                    if 'bVpHsn' in a['class']:
+                    if 'lmTyhd' in a['class']:
                         hrefs.add(a['href'])
 
         driver.close()
+        pprint(hrefs)
 
         # passes each href into an Entry object then adds it to a list
         newEntries = []
